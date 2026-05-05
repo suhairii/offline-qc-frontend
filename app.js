@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:9000/api";
+const API_BASE = "https://crafty-voter-subsidize.ngrok-free.dev/api";
 const DB_NAME = "QCDatabase";
 const DB_VERSION = 4; // Upgraded to v4 to clear data and fix logic
 let db;
