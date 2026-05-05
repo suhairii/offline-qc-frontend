@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QC Offline-First App - ULTIMATE</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .details-panel { background: #e0f2fe; padding: 1.5rem; border-radius: 12px; margin-top: 1rem; display: none; border: 1px solid #bae6fd; }
+        .details-panel.visible { display: block; }
+        .details-panel h3 { margin-top: 0; font-size: 1rem; color: #0284c7; margin-bottom: 1rem; }
+        .readonly-input { background-color: #f1f5f9; color: #475569; cursor: not-allowed; border: 1px dashed #cbd5e1; }
+        .badge-count { background: var(--primary); color: white; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .table-container { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .data-table th, .data-table td { padding: 0.75rem; border-bottom: 1px solid var(--border); text-align: left; }
+        .data-table th { background: #f8fafc; color: var(--secondary); font-weight: 600; }
+        .status-badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: bold; color: white; text-transform: uppercase; }
+        .history-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        @media (min-width: 1024px) { .history-grid { grid-template-columns: 1fr 1fr; } .full-width { grid-column: span 2; } }
+        .flex-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .flex-row .form-group { flex: 1; margin-bottom: 0; }
+        .progress-text { font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>QC System <small>Ultimate Sync</small></h1>
+            <div id="network-status" class="status-indicator">Checking Connection...</div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="dashboard">
+            <div class="card stat-card">
+                <h3>Antrian Sinkronisasi</h3>
+                <div id="sync-count" class="count-large">0</div>
+                <p>Data siap dikirim ke pusat</p>
+            </div>
+            <div class="actions">
+                <button id="btn-pull" class="btn btn-secondary">Tarik Master Data dari Pusat</button>
+                <button id="btn-push" class="btn btn-primary">Push & Sinkronisasi Data</button>
+            </div>
+        </section>
+
+        <!-- Master Data Ditarik -->
+        <section class="table-container">
+            <div style="padding: 1rem; border-bottom: 1px solid var(--border);" class="flex-between">
+                <h3 style="margin:0; font-size: 1.1rem;">[Daftar Master Data Ditarik]</h3>
+                <div id="progress-qc" class="progress-text">Progress QC: 0 / 0</div>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead><tr><th>Barcode</th><th>Nama Item</th><th>Status</th></tr></thead>
+                    <tbody id="master-pulled-list"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Input Scanner -->
+        <section class="scan-section">
+            <div class="card">
+                <h2>Input QC Check</h2>
+                <form id="qc-form">
+                    <div class="form-group">
+                        <label for="barcode">Scan Barcode</label>
+                        <div class="flex-row">
+                            <input type="text" id="barcode" placeholder="Scan barcode..." required autofocus autocomplete="off">
+                            <button type="button" id="btn-auto-scan" class="btn btn-secondary">Auto-Scan</button>
+                            <button type="button" id="btn-auto-reject" class="btn btn-secondary" style="background: #fee2e2; color: #dc2626; border-color: #fecaca;">Auto-REJECT</button>
+                        </div>
+                    </div>
+                    <div id="item-details" class="details-panel">
+                        <h3>📋 Detail Item (Auto-Fill)</h3>
+                        <div class="form-group"><label>Nama Item</label><input type="text" id="read-nama" readonly class="readonly-input"></div>
+                        <div class="flex-row">
+                            <div class="form-group"><label>Batch</label><input type="text" id="read-batch" readonly class="readonly-input"></div>
+                            <div class="form-group" style="flex: 2;"><label>Deskripsi</label><input type="text" id="read-desc" readonly class="readonly-input"></div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <label for="status">QC Status</label>
+                        <select id="status" required><option value="Pass">PASS</option><option value="Reject">REJECT</option></select>
+                    </div>
+                    <button type="submit" class="btn btn-success">Submit Hasil Scan</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Input Manual Section -->
+        <section class="card" style="margin-top: 2rem; border-top: 4px solid var(--secondary);">
+            <h2>Input Manual (Tanpa Barcode)</h2>
+            <form id="manual-form">
+                <div class="flex-row">
+                    <div class="form-group"><label>Barcode</label><input type="text" id="m-barcode" required></div>
+                    <div class="form-group"><label>Nama Item</label><input type="text" id="m-nama" required></div>
+                </div>
+                <div class="flex-row">
+                    <div class="form-group"><label>Batch</label><input type="text" id="m-batch" required></div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="m-status"><option value="Pass">PASS</option><option value="Reject">REJECT</option></select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-secondary" style="width:100%">Simpan Data Manual</button>
+            </form>
+        </section>
+
+        <!-- Riwayat Terpisah -->
+        <div class="history-grid" style="margin-top: 2rem;">
+            <section class="table-container">
+                <div style="padding: 1rem; border-bottom: 1px solid var(--border);"><h3 style="margin:0; font-size: 1rem; color: var(--success);">[Riwayat Scan Sukses]</h3></div>
+                <div class="table-responsive"><table class="data-table"><thead><tr><th>Barcode</th><th>Status</th><th>Waktu</th></tr></thead><tbody id="success-list"></tbody></table></div>
+            </section>
+            
+            <section class="table-container">
+                <div style="padding: 1rem; border-bottom: 1px solid var(--border);"><h3 style="margin:0; font-size: 1rem; color: var(--primary);">[Riwayat Sinkronisasi Berhasil]</h3></div>
+                <div class="table-responsive"><table class="data-table"><thead><tr><th>Detail Transaksi</th></tr></thead><tbody id="sync-history-list"></tbody></table></div>
+            </section>
+
+            <section class="table-container">
+                <div style="padding: 1rem; border-bottom: 1px solid var(--border);"><h3 style="margin:0; font-size: 1rem; color: var(--danger);">[Riwayat Scan Invalid]</h3></div>
+                <div class="table-responsive"><table class="data-table"><thead><tr><th>Barcode</th><th>Alasan</th><th>Waktu</th></tr></thead><tbody id="invalid-list"></tbody></table></div>
+            </section>
+
+            <section class="table-container full-width">
+                <div style="padding: 1rem; border-bottom: 1px solid var(--border);"><h3 style="margin:0; font-size: 1rem; color: #f59e0b;">[Log Error Sinkronisasi]</h3></div>
+                <div class="table-responsive"><table class="data-table"><thead><tr><th>Pesan Error</th><th>Detail Penyebab</th><th>Waktu</th></tr></thead><tbody id="sync-error-list"></tbody></table></div>
+            </section>
+        </div>
+        <section id="toast" class="toast hidden"></section>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>
