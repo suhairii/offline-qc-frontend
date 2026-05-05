@@ -36,19 +36,31 @@ const initDB = () => {
 
 const netStatus = document.getElementById("network-status");
 const syncCountEl = document.getElementById("sync-count");
-const qcForm = document.getElementById("qc-form");
-const manualForm = document.getElementById("manual-form");
-const toastEl = document.getElementById("toast");
-const barcodeInput = document.getElementById("barcode");
-const itemDetailsPanel = document.getElementById("item-details");
 
-const updateOnlineStatus = () => {
-    netStatus.textContent = navigator.onLine ? "ONLINE" : "OFFLINE";
-    netStatus.className = "status-indicator " + (navigator.onLine ? "status-online" : "status-offline");
+const checkServerStatus = async () => {
+    try {
+        const res = await fetch(`${API_BASE}/dashboard-data`, {
+            headers: { 'ngrok-skip-browser-warning': '69420' }
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        
+        if (data.SERVER_IS_DOWN) {
+            netStatus.textContent = "OFFLINE (SERVER MATI)";
+            netStatus.className = "status-indicator status-offline";
+        } else {
+            netStatus.textContent = "ONLINE";
+            netStatus.className = "status-indicator status-online";
+        }
+    } catch (e) {
+        netStatus.textContent = "OFFLINE (KONEKSI TERPUTUS)";
+        netStatus.className = "status-indicator status-offline";
+    }
 };
-window.addEventListener("online", updateOnlineStatus);
-window.addEventListener("offline", updateOnlineStatus);
-updateOnlineStatus();
+
+// Cek status setiap 5 detik
+setInterval(checkServerStatus, 5000);
+checkServerStatus();
 
 const showToast = (msg, type = "success") => {
     toastEl.textContent = msg;
