@@ -224,7 +224,7 @@ document.getElementById("btn-push").addEventListener("click", async () => {
                     "Content-Type": "application/json",
                     "ngrok-skip-browser-warning": "69420"
                 },
-                body: JSON.stringify(batch)
+                body: JSON.stringify(logs)
             });
 
 
