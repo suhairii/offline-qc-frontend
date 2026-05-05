@@ -62,6 +62,12 @@ const checkServerStatus = async () => {
 setInterval(checkServerStatus, 5000);
 checkServerStatus();
 
+const qcForm = document.getElementById("qc-form");
+const manualForm = document.getElementById("manual-form");
+const toastEl = document.getElementById("toast");
+const barcodeInput = document.getElementById("barcode");
+const itemDetailsPanel = document.getElementById("item-details");
+
 const showToast = (msg, type = "success") => {
     toastEl.textContent = msg;
     toastEl.className = `toast ${type}`;
