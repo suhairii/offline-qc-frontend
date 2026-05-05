@@ -126,7 +126,9 @@ const renderSyncHistory = () => {
 
 document.getElementById("btn-pull").addEventListener("click", async () => {
     try {
-        const res = await fetch(`${API_BASE}/master-data`);
+        const res = await fetch(`${API_BASE}/master-data`, {
+            headers: { 'ngrok-skip-browser-warning': '69420' }
+        });
         const data = await res.json();
         const tx = db.transaction("master_data", "readwrite");
         await tx.objectStore("master_data").clear();
@@ -216,11 +218,15 @@ document.getElementById("btn-push").addEventListener("click", async () => {
         if (logs.length === 0) return showToast("[Peringatan] Tidak ada data", "error");
         
         try {
-            const res = await fetch(`${API_BASE}/sync-qc`, { 
-                method: "POST", 
-                headers: { "Content-Type": "application/json" }, 
-                body: JSON.stringify(logs) 
+            const res = await fetch(`${API_BASE}/sync-qc`, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "69420"
+                },
+                body: JSON.stringify(batch)
             });
+
 
             if (!res.ok) {
                 let msg = "";
